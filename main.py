@@ -26,12 +26,12 @@ def verify_ruc_created(event: Event[DocumentSnapshot]) -> None:
     if response_verify_ruc.status_code != 200:
         event.data.reference.update({
             "socialReason": "RUC " + ruc + " no encontrado",
-            "statusRuc": False,
+            "statusRuc": "Error",
         })
     else:
         event.data.reference.update({
             "socialReason": response_verify_ruc.json()["nombre_o_razon_social"],
-            "statusRuc": True,
+            "statusRuc": "Correcto",
         })
 
 
@@ -52,12 +52,12 @@ def verify_ruc_updated(event: Event[Change[DocumentSnapshot]]) -> None:
     if response_verify_ruc.status_code != 200:
         event.data.after.reference.update({
             "socialReason": "RUC " + ruc + " no encontrado",
-            "statusRuc": False,
+            "statusRuc": "Error",
         })
     else:
         event.data.after.reference.update({
             "socialReason": response_verify_ruc.json()["nombre_o_razon_social"],
-            "statusRuc": True,
+            "statusRuc": "Correcto",
         })
 
 
@@ -88,15 +88,20 @@ def verify_voucher_created(event: Event[DocumentSnapshot]) -> None:
 
     response_verify_voucher = requests.post(url_verify_ruc, json=body_verify_ruc)
 
-    status = response_verify_voucher.json()["estado_comprobante"]
+    try:
+        status = response_verify_voucher.json()["estado_comprobante"]
 
-    if status != "1":
+        if status != "1":
+            event.data.reference.update({
+                "statusVoucher": "Error",
+            })
+        else:
+            event.data.reference.update({
+                "statusVoucher": "Correcto",
+            })
+    except:
         event.data.reference.update({
-            "statusVoucher": False,
-        })
-    else:
-        event.data.reference.update({
-            "statusVoucher": True,
+            "statusVoucher": "Error",
         })
 
 
@@ -126,15 +131,21 @@ def verify_voucher_updated(event: Event[Change[DocumentSnapshot]]) -> None:
     }
 
     response_verify_voucher = requests.post(url_verify_ruc, json=body_verify_ruc)
-    status = response_verify_voucher.json()["estado_comprobante"]
 
-    if status != "1":
+    try:
+        status = response_verify_voucher.json()["estado_comprobante"]
+
+        if status != "1":
+            event.data.after.reference.update({
+                "statusVoucher": "Error",
+            })
+        else:
+            event.data.after.reference.update({
+                "statusVoucher": "Correcto",
+            })
+    except:
         event.data.after.reference.update({
-            "statusVoucher": False,
-        })
-    else:
-        event.data.after.reference.update({
-            "statusVoucher": True,
+            "statusVoucher": "Error",
         })
 
 # PS C:\Users\piero\FirebaseFunctions> firebase deploy
